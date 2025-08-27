@@ -1,3 +1,4 @@
+import hero from '../../assets/hero.png'
 import { Link } from "react-scroll";
 
 export default function HeroSection() {
@@ -13,16 +14,15 @@ export default function HeroSection() {
         <Link to="features" 
             spy={true}
             smooth={true}
-            offset={-76} // Adjust if navbar height changes
+            offset={-64} // Adjust if navbar height changes
             duration={500}
             className="inline-block bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-3 px-8 rounded transition">
           Explore Features
         </Link>
       </div>
       <div className="md:ml-10 mt-12 md:mt-0 w-full md:w-1/2">
-        <div className="rounded-lg shadow-lg h-64 bg-primary-700 flex items-center justify-center">
-          {/* Placeholder for illustration/mockup */}
-          <span className="text-gray-400">[App Screenshot or Illustration Here]</span>
+        <div className="h-64  flex items-center justify-center">
+          <img  className = "rounded-lg shadow-[0_12px_16px_-22px] shadow-secondary-800" src = {hero}/>
         </div>
       </div>
     </section>

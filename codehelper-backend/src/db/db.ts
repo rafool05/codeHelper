@@ -1,3 +1,4 @@
+import { fromUint8Array } from "js-base64";
 import { model, Schema, Types } from "mongoose";
 import * as Y from 'yjs'
 function randomizer(len : number) : string {
@@ -42,14 +43,14 @@ const ydocDefault = new Y.Doc();
 ydocDefault.getMap("sharedstate").set('lang','javascript');
 ydocDefault.getMap("sharedstate").set('content',langDefaults)
 ydocDefault.getMap('sharedstate').set('permission',{})
-const defEncoding = Y.encodeStateAsUpdate(ydocDefault);
+const defEncoding = fromUint8Array(Y.encodeStateAsUpdate(ydocDefault));
 const roomSchema = new Schema({
   title : {type : String,require:true},
   user : {type : Types.ObjectId, ref: 'User'},
   joinedUsers : {type : [Types.ObjectId], ref : 'User'},
   date : {type : Date},
-  hash : {type : String,default:randomizer(20)},
-  ydoc : {type : typeof(defEncoding),default:defEncoding}
+  hash : {type : String,default:()=>randomizer(20)},
+  ydoc : {type : typeof defEncoding, default: Buffer.from(defEncoding)}
 })
 const userSchema = new Schema({
   username : {type : String, required : true,unique:true},    

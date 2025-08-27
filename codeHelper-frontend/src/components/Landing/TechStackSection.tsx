@@ -21,7 +21,7 @@ export default function TechStackSection() {
         <h2 className="text-3xl font-bold text-yellow-400 mb-12">Tech Stack</h2>
         <div className="flex flex-wrap gap-6">
           {stack.map(t => (
-            <div key={t.name} className="px-4 py-6 w-56 rounded bg-primary-950 flex flex-col gap-2 items-center text-center text-gray-100 cursor-pointer transform transition-transform duration-300 ease-in-out hover:scale-105 hover:text-yellow-400">
+            <div key={t.name} className="px-4 py-6 w-56 rounded bg-primary-950 flex flex-col gap-2 items-center text-center text-gray-100 cursor-pointer transform transition-transform duration-300 ease-in-out hover:scale-105 hover:text-yellow-400 transition">
               <img className='w-[40px]' src = {t.logo}/>
               <div className="font-semibold text-lg mb-2">{t.name}</div>
               <div className="text-gray-300 text-sm">{t.desc}</div>

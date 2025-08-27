@@ -1,5 +1,7 @@
 import { Link } from 'react-scroll';
+import { useNavigate } from 'react-router-dom';
 import logo from "../../assets/logo.png"
+import { Button } from '../../ui/Button';
 const navLinks = [
   { href: "hero", label: "Home" },
   { href: "direction", label: "Get Started" },
@@ -10,13 +12,14 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const navigate = useNavigate();
   return (
     <nav className="fixed top-0 left-0 w-full bg-primary-950/90 z-50 backdrop-blur">
       <div className="container mx-auto flex justify-between items-center px-4 py-2">
-        <div className='flex gap-4 items-center'>
+        <div className='flex gap-2 items-center'>
 
-          <span><img className="w-[60px]" src = {logo}></img></span>
-          <span className="font-bold text-xl text-yellow-400">LiveCollabCode</span>
+          <span><img className="w-12" src = {logo}></img></span>
+          <span className="font-bold text-xl text-yellow-400">ScryptSync</span>
         </div>
         <ul className="flex gap-6 items-center">
           {navLinks.map(link => (
@@ -26,7 +29,7 @@ export default function Navbar() {
                 to={link.href}
                 spy={true}
                 smooth={true}
-                offset={-76} // Adjust if navbar height changes
+                offset={-64} // Adjust if navbar height changes
                 duration={500}
                 className="cursor-pointer text-gray-100 hover:text-yellow-400 transition"
               >
@@ -35,12 +38,14 @@ export default function Navbar() {
             </li>
           ))}
           <li>
-            <button
-              onClick={() => window.location.href = "/signup"} // Replace with your signup route
-              className="ml-4 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-2 px-5 rounded transition"
+            <Button
+              onClick={() => navigate("/signup")}
+              variant="pos-cta"
+              size="md"
+              className="ml-4"
             >
               Get Started
-            </button>
+            </Button>
           </li>
         </ul>
       </div>

@@ -5,8 +5,12 @@ import FeaturesSection from './FeatureSection.tsx';
 import TechStackSection from './TechStackSection.tsx';
 import AboutMeSection from './AboutMeSection.tsx';
 import Footer from './Footer.tsx';
+import { useEffect } from 'react';
 
 export default function Landing() {
+  useEffect(()=>{
+    document.title = "ScryptSync"
+  },[])
   return (
     <div className="bg-primary-900 min-h-screen">
       <Navbar />

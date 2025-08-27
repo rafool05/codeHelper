@@ -1,38 +1,79 @@
-import { useState } from 'react';
+import { backend_url } from '../../utils/getBackendUrl';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RoomsSection from './RoomsSection.tsx';   
 import CreateRoomModal from './CreateRoomModal.tsx';
 import JoinRoomModal from './JoinRoomModal.tsx';
+import { getUserInfo } from '../../utils/getUserInfo.ts';
+import { LogoutModal } from './LogoutModal.tsx';
+import { Button } from '../../ui/Button';
 
 export default function DashboardPage() {
   const [section, setSection] = useState<'my' | 'joined'>('my');
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [userInfo,setUserInfo] = useState<string | null>(null)
+  const navigate = useNavigate();
+  function handleLogout() {
+  fetch(`${backend_url}/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).then(() => {
+      navigate('/signin');
+    });
+  }
+  useEffect(()=>{
+    getUserInfo().then(response=>{
+      document.title = response.username+"'s Dashboard"
+      setUserInfo(response.username)
+    })
+  })
   return (
     <>
     <CreateRoomModal isOpen = {createOpen} setOpen = {setCreateOpen}/> 
     <JoinRoomModal isOpen = {joinOpen} setOpen = {setJoinOpen}/> 
+    <LogoutModal isOpen={showLogoutModal} onClose={()=>{setShowLogoutModal(false)}} onAction={()=>{handleLogout()}}/>
     <div className="bg-primary-900 min-h-screen px-8 py-10">
       <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-        <h1 className="text-3xl font-bold text-yellow-400">Welcome back!</h1>
+        <h1 className="text-3xl font-bold text-secondary-900">Welcome back!, {userInfo}</h1>
         <div className="flex gap-4 mt-6 md:mt-0">
-          <button className="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-2 px-6 rounded transition flex gap-2 items-center" onClick={()=>{setCreateOpen(true)}}>
+          <Button
+            onClick={()=>{setCreateOpen(true)}}
+            variant="pos-cta"
+            size="md"
+            className='w-40'
+          >
             Create Room
-          </button>
-          <button className="bg-primary-700 hover:bg-primary-800 text-yellow-400 font-semibold py-2 px-6 rounded transition flex gap-2 items-center" onClick={()=>{setJoinOpen(true)}}>
+          </Button>
+          <Button
+            onClick={()=>{setJoinOpen(true)}}
+            variant="primary"
+            size="md"
+            className='w-40'
+            >
             Join Room
-          </button>
+          </Button>
+          <Button
+            onClick={()=>setShowLogoutModal(true)}
+            variant="neg-cta"
+            size="md"
+            className='w-40'
+          >
+            Logout
+          </Button>
         </div>
       </div>
       {/* Tabs/Toggle */}
       <div className="flex gap-6 mb-6">
         <button
-          className={`px-6 py-2 rounded-t ${section === 'my' ? 'bg-primary-800 text-yellow-400' : 'bg-primary-700 text-gray-200'} font-semibold transition`}
+          className={`px-6 py-2 rounded-t ${section === 'my' ? 'bg-primary-800 text-secondary-900' : 'bg-primary-900 text-primary-600'} font-semibold transition`}
           onClick={() => setSection('my')}
         >
           My Rooms
         </button>
         <button
-          className={`px-6 py-2 rounded-t ${section === 'joined' ? 'bg-primary-800 text-yellow-400' : 'bg-primary-700 text-gray-200'} font-semibold transition`}
+          className={`px-6 py-2 rounded-t ${section === 'joined' ? 'bg-primary-800 text-secondary-900' : 'bg-primary-900 text-primary-600'} font-semibold transition`}
           onClick={() => setSection('joined')}
         >
           Joined Rooms
@@ -40,6 +81,7 @@ export default function DashboardPage() {
       </div>
       <RoomsSection section={section} />
     </div>
+    
     </>
   );
 }

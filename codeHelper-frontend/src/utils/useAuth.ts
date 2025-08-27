@@ -1,3 +1,4 @@
+import { backend_url } from './getBackendUrl';
 import { useState, useEffect } from 'react';
 
 export default function useAuth() {
@@ -6,7 +7,7 @@ export default function useAuth() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const response = await fetch('http://localhost:8080/isAuth', {
+  const response = await fetch(`${backend_url}/isAuth`, {
           credentials: 'include', // Important! Sends cookies along with the request
         });
         if (response.ok) {

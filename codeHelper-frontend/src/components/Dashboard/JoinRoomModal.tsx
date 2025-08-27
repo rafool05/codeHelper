@@ -1,7 +1,10 @@
+import { backend_url } from '../../utils/getBackendUrl';
 import { useState } from "react";
-import Modal from "../BaseModal";
+import { useNavigate } from 'react-router-dom';
+import Modal from "../../ui/BaseModal";
 import Input from "../Input";
-import { toast } from "react-toastify";
+import { ToastError, ToastSuccess } from '../../utils/toast';
+import { Button } from '../../ui/Button';
 
 type Props = {
   isOpen: boolean,
@@ -10,10 +13,11 @@ type Props = {
 
 export default function JoinRoomModal({ isOpen, setOpen }: Props) {
   const [roomId, setRoomId] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     if (roomId.trim()) {
-      const response = await fetch("http://localhost:8080/joinRoom",{
+  const response = await fetch(`${backend_url}/joinRoom`,{
         method : "PUT",
         credentials : 'include',
         headers : {
@@ -28,17 +32,14 @@ export default function JoinRoomModal({ isOpen, setOpen }: Props) {
         if (data.errors && Array.isArray(data.errors)) {
           data.errors.forEach((err: { message: string }, index: number) => {
             setTimeout(() => {
-              toast.error(err.message, {
-                position: 'top-right',
-                autoClose: 2000,
-                theme: "dark"
-              });
+                ToastError(err.message);
             }, index * 1000);
           });
         }
       }
       else{
-        window.location.href='/editor/'+roomId
+        ToastSuccess("Room Joined Successfully")
+        navigate('/editor/'+roomId)
       }
       setRoomId('');
       setOpen(false)
@@ -54,12 +55,14 @@ export default function JoinRoomModal({ isOpen, setOpen }: Props) {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRoomId(e.target.value)}
         className="w-full px-4 py-2 rounded bg-primary-700 text-gray-100 focus:outline-none focus:ring focus:ring-yellow-400 mb-4"
       />
-      <button
-        onClick={handleSubmit}
-        className="mt-5 w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold py-2 rounded transition"
-      >
-        Join
-      </button>
+        <Button
+          onClick={handleSubmit}
+          variant="pos-cta"
+          size="md"
+          className="mt-5 w-full text-md"
+        >
+          Join
+        </Button>
     </Modal>
   );
 }

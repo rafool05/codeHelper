@@ -1,3 +1,4 @@
+import { backend_url } from '../utils/getBackendUrl';
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import { Navigate, useParams } from "react-router-dom";
@@ -7,7 +8,7 @@ export function RequireRoomAccess({children} : {children : any}){
     const {room_id} = useParams()
     useEffect(()=>{
         (async ()=>{
-            const roomResponse = await fetch("http://localhost:8080/getRoomData?"+new URLSearchParams({hash : room_id as string}),
+            const roomResponse = await fetch(`${backend_url}/getRoomData?`+new URLSearchParams({hash : room_id as string}),
             {credentials:"include"})
             if(!roomResponse.ok){
                 setRoomAccess(false)

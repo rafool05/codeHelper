@@ -13,8 +13,8 @@ mongoose.connect(DB_URL)
 const JWT_SECRET : string = process.env.JWT_SECRET as string
 const app = express();
 app.use(express.json())
-app.use(cookieParser())
-app.use(cors({origin:"http://localhost:5173",credentials:true}))
+app.use(cookieParser()) 
+app.use(cors({origin:"http://localhost:3000",credentials:true}))  
 
 app.post("/signup",validateInput, async (req : Request,res:Response)=>{
   const username = req.body.username;
@@ -55,7 +55,7 @@ app.post("/signin",async(req : Request,res:Response)=>{
     if(result){
         const token = jwt.sign({username : user.username,email : user.email,_id : user._id},JWT_SECRET);
         res.cookie('token',token,{
-          httpOnly:true,
+          httpOnly:true,  
           sameSite:"strict",
           maxAge: 4*60*60*1000
         })
@@ -123,7 +123,7 @@ app.put('/joinRoom',auth,async(req:Request,res:Response)=>{
     }
     // Add user to room's joinedUsers if not already present
     if(room.user == _id){
-      res.json({
+      res.status(400).json({
         errors : [{message : "You are the owner"}]
       })
       return;
@@ -148,19 +148,55 @@ app.put('/joinRoom',auth,async(req:Request,res:Response)=>{
     });
   }
 })
+app.put('/leaveRoom', auth, async (req: Request, res: Response) => {
+  try {
+    const { _id, hash } = req.body; // User ID and Room hash from body
+    const room = await Room.findOne({ hash });
+    if (!room) {
+      res.status(404).json({ errors: [{ message: "Room Not Found" }] });
+      return;
+    }
+    // Remove user from room's joinedUsers
+    await Room.updateOne(
+      { hash },
+      { $pull: { joinedUsers: _id } }
+    );
+    // Remove room from user's joinedRooms
+    await User.updateOne(
+      { _id },
+      { $pull: { joinedRooms: room._id } }
+    );
+    res.json({ messages: [{ message: "Successfully left room" }] });
+  } catch (e) {
+    res.status(500).json({ errors: [{ message: "Unexpected error occured" }] });
+  }
+});
 app.delete("/deleteRoom",auth,async(req:Request,res:Response)=>{
   try{
-    const r_id = req.query.r_id
-    await Room.deleteOne({
-      _id : r_id
-    })
+    const r_id = req.query.r_id;
+    // Find the room to get joinedUsers
+    const room = await Room.findOne({ _id: r_id, user: req.body._id });
+    if (!room) {
+      res.status(404).json({ errors: [{ message: "Room Not Found" }] });
+      return 
+    }
+    // Delete the room
+    await Room.deleteOne({ _id: r_id, user: req.body._id });
+    // Remove from owner's rooms
     await User.updateOne(
-      {_id : req.body._id},
-      {$pull :{rooms : r_id}}
-    )
+      { _id: req.body._id },
+      { $pull: { rooms: r_id } }
+    );
+    // Remove from joinedRooms of all joined users
+    if (room.joinedUsers && room.joinedUsers.length > 0) {
+      await User.updateMany(
+        { _id: { $in: room.joinedUsers } },
+        { $pull: { joinedRooms: room._id } }
+      );
+    }
     res.json({
-      message : "Room Successfully Deleted"
-    })
+      message: "Room Successfully Deleted"
+    });
   }
   catch(err){
     res.status(500).json({
@@ -187,8 +223,10 @@ app.get("/getRoomData",auth,async(req:Request,res:Response)=>{
     return;
   }
   else{
+    const roomObj: any = room.toObject();
+    roomObj.ydoc = Buffer.isBuffer(room.ydoc) ? (room.ydoc as Buffer).toString('base64') : room.ydoc;
     res.json({
-      room
+      room: roomObj
     })}
 })  
 app.get("/isAuth",auth,async(_ : Request,res : Response)=>{
@@ -204,7 +242,33 @@ app.get("/getUser",auth,async(req:Request,res : Response)=>{
     email : req.body.email,
   })
 })  
-
-
-
+app.post('/logout',(_:  Request, res: Response) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: false // set to true if using https
+  });
+  res.json({ messages: [{ message: 'Successfully logged out' }] });
+});
+app.put('/saveCode', auth, async(req: Request, res: Response)=>{
+  try {
+    const hash = req.body.hash
+    const encodingBase64 = req.body.encodingBase64 as string
+    if (!hash) {
+      res.status(400).json({ errors: [{ message: 'Missing encoding or hash' }] });
+      return;
+    }
+    const room = await Room.findOne({ hash });
+    if (!room) {
+      res.status(404).json({ errors: [{ message: 'Room Not Found' }] });
+      return ;
+    }
+    // 
+    room.ydoc = encodingBase64
+    await room.save();
+    res.json({ messages: [{ message: 'Code saved successfully' }] });
+  } catch (e) {
+    res.status(500).json({ errors: [{ message: 'Unexpected error occured' }] });
+  }
+});
 app.listen(8080)

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "socket": "node node_modules/y-webrtc/bin/server.js",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -23,6 +24,9 @@
     "@uiw/react-codemirror": "^4.24.1",
     "@y/websocket-server": "^0.1.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
+    "fs": "^0.0.1-security",
+    "js-base64": "^3.7.8",
     "randomcolor": "^0.6.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -37,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
+    "@types/node": "^24.3.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/react-scroll": "^1.8.10",

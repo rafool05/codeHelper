@@ -1,11 +1,11 @@
 import type { WebrtcProvider } from "y-webrtc";
-import Modal from "../BaseModal";
+import Modal from "../../ui/BaseModal";
 import * as Y from 'yjs'
 import { Slider } from "../Slider";
 import { useEffect, useState } from "react";
 
 export function PermissionManager({isOpen,onClose,provider,ymap } : {isOpen : boolean, onClose : ()=>void, ymap : Y.Map<any> | null, provider : WebrtcProvider | null}){
-    const [permissions, setPermissions] = useState<{[key: string]: boolean}>(ymap?.get('permission') || {});
+const [permissions, setPermissions] = useState<{[key: string]: boolean}>(ymap?.get('permission') || {});
 
     useEffect(() => {
         if (!ymap) return;

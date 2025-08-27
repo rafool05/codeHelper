@@ -2,7 +2,7 @@ import profilePic from "../../assets/profile.jpeg"
 export default function AboutMeSection() {
   return (
     <section id="about" className="py-16 bg-primary-900">
-      <div className="container w-20px mx-auto px-4 gap-8 flex flex-col md:flex-row items-center">
+      <div className="container w-20px mx-auto px-4 gap-8 py-5 flex flex-col md:flex-row items-center">
         <img className = "w-sm h-sm rounded-full" src = {profilePic}/>
         <div> 
           <h2 className="text-3xl font-bold text-secondary-900 mb-4">About Me</h2>
