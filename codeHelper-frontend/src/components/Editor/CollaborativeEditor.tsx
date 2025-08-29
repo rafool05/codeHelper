@@ -76,47 +76,50 @@ function CollaborativeEditor() {
   const [userInfo, setUserInfo] = useState<null | string>(null)
   const [shareModal, setShareModal] = useState(false)
   const navigate = useNavigate();
-  useEffect(() => {
-    // Initialize Yjs doc and providers f
-    const langObserver = (event: Y.YMapEvent<any>) => {
-      if (event.keysChanged.has("lang")) {
-        setLang( yMapRef.current!.get("lang"))
-      }
-    };
-    const permObserver = (event:Y.YMapEvent<any>)=>{
-      if(event.keysChanged.has('permission')){
-        setReadOnly(!(yMapRef?.current?.get('permission')[providerRef?.current?.awareness!.getLocalState()!.user.name]))
-      }
-    }
+  if(!providerReady){
+  yMapRef.current = ydocRef.current.getMap('sharedstate') 
+  ytextRef.current = ydocRef.current.getText('codemirror')
+  undoManagerRef.current = new Y.UndoManager(ytextRef.current!);
+  providerRef.current = new WebrtcProvider(room_id as string, ydocRef.current, {
+    signaling: ["ws://localhost:4444"], // Adjust if needed
+  });
     getSavedContent(room_id as string).then((roomData)=>{
       const room = roomData.room
-      console.log(room.ydoc)
       Y.applyUpdate(ydocRef.current, toUint8Array(room.ydoc))
-      providerRef.current = new WebrtcProvider(room_id as string, ydocRef.current, {
-        signaling: ["ws://localhost:4444"], // Adjust if needed
-      });
-      yMapRef.current = ydocRef.current.getMap('sharedstate') 
-      ytextRef.current = ydocRef.current.getText('codemirror')
-      undoManagerRef.current = new Y.UndoManager(ytextRef.current!);
       setLang(yMapRef.current!.get("lang"));
       yMapRef.current!.observe(langObserver);
       yMapRef.current!.observe(permObserver);
+      
+      // Observer callback to sync language changes from Yjs to React state
+      // setProviderReady(true);
       getUserInfo().then(userData=>{  
         setUserInfo(userData.username)
         providerRef.current!.awareness.setLocalStateField("user", {
           name: userData.username,
           color: randomColor(),
         });
-        const permission = {...yMapRef.current?.get('permission')}
-        permission[userData.username] = (yMapRef.current!.get('permission')[userData.username] || (userData._id == room.user))
-        yMapRef.current?.set('permission',permission)
-        setIsOwner(userData._id == room.user)
-        setReadOnly(!permission[userData.username])
-      })
-      // Observer callback to sync language changes from Yjs to React state
-      setProviderReady(true);
+      const permission = {...yMapRef.current?.get('permission')}
+      permission[userData.username] = (yMapRef.current!.get('permission')[userData.username] || (userData._id == room.user))
+      yMapRef.current?.set('permission',permission)
+      setIsOwner(userData._id == room.user)
+      setReadOnly(!permission[userData.username])
     })
+  })
+  }
+  const langObserver = (event: Y.YMapEvent<any>) => {
+    if (event.keysChanged.has("lang")) {
+      setLang( yMapRef.current!.get("lang"))
+    }
+  };
+  const permObserver = (event:Y.YMapEvent<any>)=>{
+    if(event.keysChanged.has('permission')){
+      setReadOnly(!(yMapRef?.current?.get('permission')[providerRef?.current?.awareness!.getLocalState()!.user.name]))
+    }
+  }
+  useEffect(() => {
+    // Initialize Yjs doc and providers f
     
+    setProviderReady(true)
     return () => {  
       if (yMapRef.current) {
         yMapRef.current.unobserve(langObserver);
@@ -132,11 +135,10 @@ function CollaborativeEditor() {
   useEffect(()=>{
     document.title = userInfo ? `${userInfo}` + "'s Editor" : 'Editor';
   },[userInfo])
-  if (!providerReady) return <Loading/>;
+  // if (!providerReady) return <Loading/>;
   // Compose extensions   with current React language state to trigger reconfig on lang change
   // console.log(lang)
   // console.log(ytextRef.current!.toString())
-  console.log(ytextRef.current!.toString())
   const extensions = [
     langContext[lang],
     yCollab(ytextRef.current!, providerRef.current!.awareness, 
@@ -152,19 +154,19 @@ function CollaborativeEditor() {
       ...yMapRef.current!.get('content'),
       [yMapRef.current?.get('lang')] : ytextRef.current?.toString()
     })
-  //   const encoding = Y.encodeStateAsUpdate(ydocRef.current)
-  //   const encodingBase64 = fromUint8Array(encoding)
-  // await fetch(`${backend_url}/saveCode`,{
-  //     method : "PUT",
-  //     credentials:'include',
-  //     headers:{
-  //       "Content-type":"application/json",
-  //     },
-  //     body : JSON.stringify({
-  //       encodingBase64,
-  //       hash : room_id
-  //     })
-  //   })
+    const encoding = Y.encodeStateAsUpdate(ydocRef.current)
+    const encodingBase64 = fromUint8Array(encoding)
+  await fetch(`${backend_url}/saveCode`,{
+      method : "PUT",
+      credentials:'include',
+      headers:{
+        "Content-type":"application/json",
+      },
+      body : JSON.stringify({
+        encodingBase64,
+        hash : room_id
+      })
+    })
   ToastSuccess("Saved Successfully");
   }
   async function handleRun(){
